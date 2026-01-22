@@ -93,26 +93,45 @@ def make_weekly_sleep_stacked_bar(df: pd.DataFrame, color_map: dict) -> "plotly.
     return fig
 
 
+STRESS_COLOR_MAP = {
+    "Rest":   "#56CCF2",
+    "Low":    "#F2C94C",
+    "Medium":  "#F2994A",
+    "High":   "#EB5757",
+}
+
 def make_donut_stress(df: pd.DataFrame):
     if "label_stress" not in df.columns:
         agg = pd.DataFrame({"label_stress": ["(missing label_stress)"], "value": [1]})
-    else:
-        agg = (
-            df.groupby("label_stress", as_index=False)
-              .size()
-              .rename(columns={"size": "value"})
-        )
+        fig = px.pie(agg, names="label_stress", values="value", hole=0.62, title="Stress Level Frequency")
+        fig.update_layout(height=360, margin=dict(l=10, r=10, t=45, b=10), legend_title_text="Stress Level")
+        return fig
 
-        if len(agg) == 0:
-            agg = pd.DataFrame({"label_stress": ["(no data)"], "value": [1]})
+    agg = (
+        df.groupby("label_stress", as_index=False)
+          .size()
+          .rename(columns={"size": "value"})
+    )
+
+    if len(agg) == 0:
+        agg = pd.DataFrame({"label_stress": ["(no data)"], "value": [1]})
+        fig = px.pie(agg, names="label_stress", values="value", hole=0.62, title="Stress Level Frequency")
+        fig.update_layout(height=360, margin=dict(l=10, r=10, t=45, b=10), legend_title_text="Stress Level")
+        return fig
+
+    order = ["Rest", "Low", "Medium", "High"]
 
     fig = px.pie(
         agg,
         names="label_stress",
         values="value",
         hole=0.62,
-        title="Stress Level Frequency"
+        title="Stress Level Frequency",
+        color="label_stress",
+        color_discrete_map=STRESS_COLOR_MAP,
+        category_orders={"label_stress": order},
     )
+
     fig.update_layout(
         height=360,
         margin=dict(l=10, r=10, t=45, b=10),
