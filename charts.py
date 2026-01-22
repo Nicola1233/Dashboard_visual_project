@@ -10,7 +10,6 @@ def build_color_map(df: pd.DataFrame, label_col: str = "Label", color_col: str =
 
     color_map = {}
     if color_col in df.columns:
-        # pick first non-null color per label
         tmp = (
             df[[label_col, color_col]]
             .dropna()
@@ -19,9 +18,6 @@ def build_color_map(df: pd.DataFrame, label_col: str = "Label", color_col: str =
             .to_dict()
         )
         color_map.update(tmp)
-
-    # Ensure every label has a color
-    # Plotly default qualitative palette:
     fallback = px.colors.qualitative.Plotly
     for i, lab in enumerate(labels):
         if lab not in color_map or not str(color_map[lab]).strip():
@@ -57,7 +53,6 @@ def make_line_steps(df, color_map):
 
 def _add_week_col(df: pd.DataFrame) -> pd.DataFrame:
     out = df.copy()
-    # Week start (Mon) - robust
     out["week"] = out["calendarDate"].dt.to_period("W-MON").apply(lambda p: p.start_time)
     return out
 
@@ -65,14 +60,12 @@ def _add_week_col(df: pd.DataFrame) -> pd.DataFrame:
 def make_weekly_sleep_stacked_bar(df: pd.DataFrame, color_map: dict) -> "plotly.graph_objects.Figure":
     d = _add_week_col(df)
 
-    # weekly sum per label
     g = (
         d.groupby(["week", "Label"], as_index=False)["total_sleep"]
         .sum()
         .rename(columns={"total_sleep": "weekly_sleep_sum"})
     )
 
-    # baseline computed on weekly totals (across labels)
     weekly_total = g.groupby("week", as_index=False)["weekly_sleep_sum"].sum()
     baseline = weekly_total["weekly_sleep_sum"].mean() if len(weekly_total) else 0.0
 
@@ -86,7 +79,6 @@ def make_weekly_sleep_stacked_bar(df: pd.DataFrame, color_map: dict) -> "plotly.
         title="Total sleep "
     )
 
-    # add baseline horizontal line
     fig.add_hline(
         y=baseline,
         line_dash="dash",

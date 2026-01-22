@@ -59,15 +59,12 @@ def main() -> None:
 
     csv_path = st.sidebar.text_input("CSV", value="data/Dataset_User1234.csv")
     df = load_data(csv_path)
-
-    # Safety: ensure required columns
     required = ["calendarDate", "totalSteps", "total_sleep", "Label", "avgStress_TOTAL"]
     missing = [c for c in required if c not in df.columns]
     if missing:
         st.error(f"Columns not found in CSV: {missing}")
         st.stop()
 
-    # Build label list
     labels = sorted(df["Label"].dropna().unique().tolist())
 
     st.sidebar.header("Filter")
@@ -95,9 +92,8 @@ def main() -> None:
 
     selected = sorted(st.session_state.selected_labels)
 
-    # Filter df
     if len(selected) == 0:
-        df_f = df.iloc[0:0]  # empty
+        df_f = df.iloc[0:0]  
     else:
         df_f = df[df["Label"].isin(selected)].copy()
 
@@ -138,7 +134,7 @@ def main() -> None:
             )
         else:
             kpi_card(
-                "Avg activeKilocalories",
+                "Avg Active Kilocalories",
                 "—",
                 "No Active Kilocalories found from the source"
             )
@@ -150,7 +146,7 @@ def main() -> None:
             )
         else:
             kpi_card(
-                "Avg maxHeartRate",
+                "Avg Max Heart Rate",
                 "—",
                 "No Max Heart Rate found from the source"
             )
