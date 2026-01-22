@@ -101,7 +101,8 @@ def main() -> None:
         st.warning("No country selected!")
         st.stop()
 
-    color_map = build_color_map(df, label_col="Label", color_col="color")
+    # color_map = build_color_map(df, label_col="Label", color_col="color")
+    color_map = build_color_map(df, label_col="Label")
 
 
     left, right = st.columns([2.2, 1.0], gap="large")

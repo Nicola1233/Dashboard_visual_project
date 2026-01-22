@@ -5,25 +5,22 @@ import numpy as np
 import plotly.express as px
 import plotly.graph_objects as go
 
-def build_color_map(df: pd.DataFrame, label_col: str = "Label", color_col: str = "color") -> dict:
-    labels = sorted(df[label_col].dropna().unique().tolist())
+# HEX_COLORS = ["#2ab53c", "#fc2c44", "#475de1", "#72e5ef", "#708e30"]
 
-    color_map = {}
-    if color_col in df.columns:
-        tmp = (
-            df[[label_col, color_col]]
-            .dropna()
-            .drop_duplicates(subset=[label_col])
-            .set_index(label_col)[color_col]
-            .to_dict()
-        )
-        color_map.update(tmp)
-    fallback = px.colors.qualitative.Plotly
-    for i, lab in enumerate(labels):
-        if lab not in color_map or not str(color_map[lab]).strip():
-            color_map[lab] = fallback[i % len(fallback)]
 
-    return color_map
+COLOR_MAP = {
+    "Barcelona_sem2": "#fc2c44",   
+    "Bruxelles_sem1": "#2ab53c",   
+    "france_sem3": "#475de1",      
+    "Italy_vac": "#72e5ef",        
+    "Morocco_vac": "#708e30",      
+}
+def build_color_map(df: pd.DataFrame, label_col: str = "Label") -> dict:
+    labels = set(df[label_col].dropna().unique().tolist())
+
+    return {lab: COLOR_MAP.get(lab, "#888888") for lab in labels}
+
+
 
 
 def make_line_steps(df, color_map):
