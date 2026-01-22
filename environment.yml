@@ -1,0 +1,11 @@
+name: pyinterface-dashboard
+channels:
+  - conda-forge
+dependencies:
+  - python=3.11
+  - pip
+  - pandas
+  - numpy
+  - pip:
+      - streamlit>=1.31
+      - plotly>=5.18
