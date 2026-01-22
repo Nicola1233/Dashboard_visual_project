@@ -1,6 +1,6 @@
 # Dashboard 
 
-This project is a **simple interactive dashboard built with Streamlit and Plotly**.
+This project is a **interactive dashboard built with Streamlit and Plotly**.
 It visualizes daily life of a BDMA student data such as steps, sleep, and other data from a CSV file.
 
 The app is written in Python and can be run **with Anaconda (conda)** or **without Anaconda (pip)**.
