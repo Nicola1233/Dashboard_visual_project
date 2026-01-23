@@ -9,7 +9,7 @@ The app is written in Python and can be run **with Anaconda (conda)** or **witho
 
 ## Project structure
 ```text
-pyinterface-dashboard/
+Dashboard_visual_project/
 ├─ app.py # Streamlit main app
 ├─ charts.py # Plotly charts
 ├─ styles.css # Custom CSS
