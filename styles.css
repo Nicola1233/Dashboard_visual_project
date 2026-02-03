@@ -2,8 +2,9 @@
 .kpi-card {
   padding: 14px 16px;
   border-radius: 14px;
-  border: 1px solid rgba(255,255,255,0.10);
-  background: rgba(255,255,255,0.04);
+  background: rgba(231, 225, 225, 0.763);   
+  border: 1px solid rgba(36, 36, 36, 0.1);
+  /* background: rgba(255,255,255,0.04); */
   margin-bottom: 12px;
 }
 
@@ -12,11 +13,44 @@
   opacity: 0.85;
   margin-bottom: 6px;
 }
+.kpi-row{
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 12px;
+}
+.kpi-subtitle {
+  font-size: 11px;
+  opacity: 0.7;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
 
 .kpi-value {
   font-size: 1.55rem;
   font-weight: 700;
   line-height: 1.1;
+}
+.kpi-delta{
+  font-size: 13px;
+  font-weight: 600;
+  padding: 4px 8px;
+  border-radius: 999px;
+  border: 1px solid rgba(255,255,255,0.12);
+  background: rgba(255, 255, 255, 0.753);
+  white-space: nowrap;
+}
+.kpi-right {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 4px;
+}
+.kpi-right-label {
+  font-size: 11px;
+  opacity: 0.7;
+  white-space: nowrap;
 }
 
 .kpi-sub {
@@ -24,7 +58,84 @@
   opacity: 0.70;
   margin-top: 6px;
 }
+.kpi-delta.good{
+  color: #34C759;                         
+}
+
+.kpi-delta.bad{
+  color: #FF4D5A;                         
+}
+
+.kpi-delta.neutral{
+  color: rgba(255,255,255,0.75);
+}
 
 section[data-testid="stSidebar"] .stCheckbox {
   margin-bottom: 2px;
+}
+
+.info-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.45);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 9000;
+}
+
+.info-modal {
+  position: relative;
+  width: min(640px, 92vw);
+  background: #ffffff;
+  border-radius: 16px;
+  padding: 20px 22px;
+  box-shadow: 0 20px 60px rgba(0,0,0,0.25);
+  opacity: 1;
+  z-index: 9001;
+}
+
+
+
+
+
+.info-title {
+  font-size: 18px;
+  font-weight: 700;
+  margin-bottom: 8px;
+}
+
+
+.info-body {
+  font-size: 14px;
+  line-height: 1.45;
+}
+
+.info-body h4 {
+  margin: 10px 0 4px;
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.info-body p {
+  margin: 0 0 8px;
+}
+
+
+.info-close-wrap {
+  position: fixed;
+  top: calc(50% + 140px);
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 10002;
+}
+.info-close-wrap button {
+  border: none;
+  background: #ffffff;
+  height: 36px;
+  padding: 0 14px;
+  border-radius: 999px;
+  font-size: 14px;
+  cursor: pointer;
+  box-shadow: 0 6px 16px rgba(0,0,0,0.2);
 }
