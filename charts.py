@@ -7,11 +7,12 @@ import plotly.graph_objects as go
 
 
 COLOR_MAP = {
-    "Barcelona_sem2": "#fc2c44",
-    "Bruxelles_sem1": "#ee9b00",
-    "france_sem3": "#475de1",
-    "Italy_vac": "#72e5ef",
-    "Morocco_vac": "#708e30",
+    "Spain": "#fc2c44",
+    "Belgium": "#ee9b00",
+    "France": "#475de1",
+    "Italy": "#72e5ef",
+    "Morocco": "#8c8e30",
+    "Belgium_summer": "#ab1eb0",
 }
 def _periods_with_gaps(
     x_index: pd.DatetimeIndex,
@@ -99,6 +100,9 @@ def make_line_steps(
     line_width: int = 2,
     line_color: str = "#2E86FF",
     point_size: int = 20,
+    highlight_ranges: list[dict] | None = None,
+    highlight_color: str = "#FF0000",
+    highlight_size: int | None = None,
 ) -> go.Figure:
     dff = df.copy()
     dff["calendarDate"] = pd.to_datetime(dff["calendarDate"])
@@ -135,7 +139,7 @@ def make_line_steps(
         mode="lines",
         name="Steps",
         line=dict(width=line_width, shape="spline", smoothing=spline_smoothing, color=line_color),
-        connectgaps=True,
+        connectgaps=False,
         hovertemplate="Date=%{x|%b %d, %Y}<br>Steps=%{y:,.0f}<extra></extra>",
         showlegend=False,
     ))
@@ -144,6 +148,33 @@ def make_line_steps(
     y_line = y.to_numpy()
     lab_np = lab.to_numpy()
     has_np = has_data.to_numpy()
+
+    if highlight_ranges:
+        size = highlight_size if highlight_size is not None else int(point_size * 1.8)
+        for hr in highlight_ranges:
+            start = pd.to_datetime(hr["start"])
+            end = pd.to_datetime(hr["end"]) + pd.Timedelta(days=1) - pd.Timedelta(seconds=1)
+            name = hr.get("name", "Exam")
+
+            m = (full_idx >= start) & (full_idx <= end) & has_np
+            if m.sum() == 0:
+                continue
+
+            fig.add_trace(go.Scatter(
+                x=full_idx[m],
+                y=y_line[m],
+                mode="markers",
+                name=name,
+                marker=dict(
+                    size=size,
+                    color="rgba(255,0,0,0.30)",
+                    line=dict(width=0),
+                ),
+                customdata=y_raw[m],
+                text=[name] * int(m.sum()),
+                hovertemplate="Date=%{x|%b %d, %Y}<br>Exam=%{text}<br>Steps=%{customdata:,.0f}<extra></extra>",
+                showlegend=True,
+            ))
 
     labels_present = sorted(pd.Series(lab.dropna().unique()).tolist())
     for city in labels_present:
@@ -170,11 +201,35 @@ def make_line_steps(
     fig.update_layout(
         template="plotly_white",
         title="Total Steps",
-        height=360,
+        height=300,
         margin=dict(l=10, r=10, t=45, b=10),
         legend_title_text="City",
     )
-    fig.update_xaxes(title_text="")
+    fig.add_hline(
+        y=10000,
+        line_dash="dash",
+        line_color="#000000",
+        annotation_text="Goal",
+        annotation_position="top left",
+        annotation_font_color="#000000",
+    )
+    fig.update_xaxes(
+        title_text="",
+        showgrid=True,
+        gridcolor="rgba(0,0,0,0.18)",
+        gridwidth=1.3,
+        ticklabelmode="period",
+        tickformatstops=[
+            dict(dtickrange=[None, "M1"], value="%d %b"),
+            dict(dtickrange=["M1", "M12"], value="%b\n%Y"),
+            dict(dtickrange=["M12", None], value="%Y"),
+        ],
+        minor=dict(
+            showgrid=True,
+            gridcolor="rgba(0,0,0,0.10)",
+            gridwidth=0.6,
+        ),
+    )
     fig.update_yaxes(title_text="Steps")
     return fig
 
@@ -192,6 +247,9 @@ def make_avg_weekly_sleep_stacked_bar(
     color_map: dict,
     band_opacity: float = 0.35,
     add_bands: bool = True,
+    highlight_ranges: list[dict] | None = None,
+    highlight_color: str = "#FF0000",
+    highlight_line_width: int = 4,
 ) -> go.Figure:
     d = _add_week_col(df)
 
@@ -214,6 +272,22 @@ def make_avg_weekly_sleep_stacked_bar(
 
     fig = go.Figure()
 
+    line_colors = ["rgba(0,0,0,0)"] * len(weekly)
+    line_widths = [0] * len(weekly)
+
+    if highlight_ranges and len(weekly):
+        week_start = pd.to_datetime(weekly["week"])
+        week_end = week_start + pd.Timedelta(days=6)
+        highlight_mask = pd.Series(False, index=weekly.index)
+        for hr in highlight_ranges:
+            start = pd.to_datetime(hr["start"])
+            end = pd.to_datetime(hr["end"])
+            highlight_mask |= (week_start <= end) & (week_end >= start)
+        for i, is_hi in enumerate(highlight_mask.tolist()):
+            if is_hi:
+                line_colors[i] = highlight_color
+                line_widths[i] = highlight_line_width
+
     fig.add_trace(go.Bar(
         x=weekly["week"],
         y=weekly["height"],
@@ -222,6 +296,8 @@ def make_avg_weekly_sleep_stacked_bar(
             "#FF6B6B" if v < baseline else "#7ED957"
             for v in weekly["week_total"]
         ],
+        marker_line_color=line_colors,
+        marker_line_width=line_widths,
         hovertemplate="Week=%{x|%Y-%m-%d}<br>Total=%{customdata[0]:.1f}h<br>Avg=%{customdata[1]:.1f}h<extra></extra>",
         customdata=list(zip(weekly["week_total"], [baseline] * len(weekly))),
         showlegend=False,
@@ -251,18 +327,36 @@ def make_avg_weekly_sleep_stacked_bar(
     fig.add_hline(
         y=baseline,
         line_dash="dash",
+        line_color="#000000",
         annotation_text="Total avg",
-        annotation_position="top left"
+        annotation_position="top left",
+        annotation_font_color="#000000",
     )
 
     fig.update_layout(
         template="plotly_white",
         title="Average Weekly Sleep Hours",
-        height=360,
+        height=300,
         margin=dict(l=10, r=10, t=45, b=10),
         legend_title_text="City",
     )
-    fig.update_xaxes(title_text="")
+    fig.update_xaxes(
+        title_text="",
+        showgrid=True,
+        gridcolor="rgba(0,0,0,0.18)",
+        gridwidth=1.3,
+        ticklabelmode="period",
+        tickformatstops=[
+            dict(dtickrange=[None, "M1"], value="%d %b"),
+            dict(dtickrange=["M1", "M12"], value="%b\n%Y"),
+            dict(dtickrange=["M12", None], value="%Y"),
+        ],
+        minor=dict(
+            showgrid=True,
+            gridcolor="rgba(0,0,0,0.10)",
+            gridwidth=0.6,
+        ),
+    )
     fig.update_yaxes(title_text="Hours")
     return fig
 
@@ -278,8 +372,8 @@ STRESS_COLOR_MAP = {
 def make_donut_stress(df: pd.DataFrame) -> go.Figure:
     if "label_stress" not in df.columns:
         agg = pd.DataFrame({"label_stress": ["(missing label_stress)"], "value": [1]})
-        fig = px.pie(agg, names="label_stress", values="value", hole=0.62, title="Stress Level Frequency")
-        fig.update_layout(height=360, margin=dict(l=10, r=10, t=45, b=10), legend_title_text="Stress Level")
+        fig = px.pie(agg, names="label_stress", values="value", hole=0.62, title="Daily Average Stress")
+        fig.update_layout(height=300, margin=dict(l=10, r=10, t=45, b=10), legend_title_text="Daily Average Stress")
         return fig
 
     agg = (
@@ -290,8 +384,8 @@ def make_donut_stress(df: pd.DataFrame) -> go.Figure:
 
     if len(agg) == 0:
         agg = pd.DataFrame({"label_stress": ["(no data)"], "value": [1]})
-        fig = px.pie(agg, names="label_stress", values="value", hole=0.62, title="Stress Level Frequency")
-        fig.update_layout(height=360, margin=dict(l=10, r=10, t=45, b=10), legend_title_text="Stress Level")
+        fig = px.pie(agg, names="label_stress", values="value", hole=0.62, title="Daily Average Stress")
+        fig.update_layout(height=300, margin=dict(l=10, r=10, t=45, b=10), legend_title_text="Daily Average Stress")
         return fig
 
     order = ["Rest", "Low", "Medium", "High"]
@@ -301,14 +395,14 @@ def make_donut_stress(df: pd.DataFrame) -> go.Figure:
         names="label_stress",
         values="value",
         hole=0.62,
-        title="Stress Level Frequency",
+        title="Average Daily Stress",
         color="label_stress",
         color_discrete_map=STRESS_COLOR_MAP,
         category_orders={"label_stress": order},
     )
 
     fig.update_layout(
-        height=360,
+        height=300,
         margin=dict(l=10, r=10, t=45, b=10),
         legend_title_text="Stress Level",
     )
