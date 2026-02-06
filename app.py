@@ -627,16 +627,26 @@ def main() -> None:
     line_width = max(2, min(line_width, 6))
     highlight_color = "#FF0000"
 
-    fig_line = make_line_steps(
-        df_f,
-        color_map,
-        line_color="#36073B",
-        line_width=line_width,
-        point_size=point_size,
-        highlight_ranges=highlight_ranges,
-        highlight_size=highlight_size,
-        highlight_color=highlight_color,
-    )
+    try:
+        fig_line = make_line_steps(
+            df_f,
+            color_map,
+            line_color="#36073B",
+            line_width=line_width,
+            point_size=point_size,
+            highlight_ranges=highlight_ranges,
+            highlight_size=highlight_size,
+            highlight_color=highlight_color,
+        )
+    except TypeError:
+        # Fallback for older charts.py signature without highlight args.
+        fig_line = make_line_steps(
+            df_f,
+            color_map,
+            line_color="#36073B",
+            line_width=line_width,
+            point_size=point_size,
+        )
     st.plotly_chart(fig_line, use_container_width=True)
 
     
