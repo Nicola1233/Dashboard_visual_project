@@ -14,6 +14,28 @@ COLOR_MAP = {
     "Morocco": "#8c8e30",
     "Belgium_summer": "#ab1eb0",
 }
+
+
+def _normalize_label(label: str) -> str:
+    if not label:
+        return label
+    key = str(label).strip()
+    lower = key.lower()
+
+    if "barcelona" in lower or "spain" in lower:
+        return "Spain"
+    if "bruxelles" in lower or "brussels" in lower or "belgium" in lower:
+        if "summer" in lower:
+            return "Belgium_summer"
+        return "Belgium"
+    if "france" in lower or "paris" in lower:
+        return "France"
+    if "italy" in lower or "italia" in lower:
+        return "Italy"
+    if "morocco" in lower or "marocco" in lower:
+        return "Morocco"
+
+    return key
 def _periods_with_gaps(
     x_index: pd.DatetimeIndex,
     labels: pd.Series,
@@ -46,7 +68,11 @@ def _periods_with_gaps(
 
 def build_color_map(df: pd.DataFrame, label_col: str = "Label") -> dict:
     labels = set(df[label_col].dropna().unique().tolist())
-    return {lab: COLOR_MAP.get(lab, "#888888") for lab in labels}
+    out = {}
+    for lab in labels:
+        norm = _normalize_label(lab)
+        out[lab] = COLOR_MAP.get(norm, "#888888")
+    return out
 
 
 def _mode_or_nan(s: pd.Series):
